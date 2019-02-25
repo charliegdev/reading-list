@@ -10,6 +10,9 @@
 ## Tips
 
 1. Once navigated to the desired location on the terminal, use `code` to open VS Code.
+
+   ![code](screenshots/code.PNG)
+
 1. Zen mode
 
    ![zen-mode](screenshots/zen-mode.PNG)
@@ -20,7 +23,7 @@
    - Dragging from the top of the bottom blue bar.
 1. Revert git commit in the GUI
 
-   ![undo](screenshots/undo-commit.PNG)
+   ![undo](screenshots/undo.PNG)
 
 ## Plugins
 
