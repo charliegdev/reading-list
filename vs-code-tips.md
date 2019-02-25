@@ -1,13 +1,17 @@
 <!-- TOC depthFrom:2 -->
 
-- [Tips](#tips)
+- [Increase Productivity](#increase-productivity)
 - [Plugins](#plugins)
 
 <!-- /TOC -->
 
 # VS Code Tips
 
-## Tips
+This doc is a note from this YouTube video:
+
+[VS Code Top-Ten Pro Tips](https://www.youtube.com/watch?v=u21W_tfPVrY) by [Fireship](https://www.youtube.com/channel/UCsBjURrPoezykLs9EqgamOA).
+
+## Increase Productivity
 
 1. Once navigated to the desired location on the terminal, use `code` to open VS Code.
 
