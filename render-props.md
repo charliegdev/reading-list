@@ -1,10 +1,10 @@
 # Render Props
 
-Render props is a way of enabling code logic reuse by providing a component its `render` function as a prop.
+Render props is a way of enabling code reuse by telling a component how it should render; this is usually done by passing the `render` function as a prop.
 
 ## Motivation
 
-Normally if we have some common logic to reuse among different components, we can extract them into a React-agnostic separate file. This approach works well, until the common logic involves view. Here is an example: assume we just made a component that trackers a user's mouse position on screen, and print in on screen:
+Normally if we have some common logic to reuse among different components, we can extract them into a React-agnostic separate file. This approach works well until the common logic involves view. Here is an example: assume we just made a component that trackers a user's mouse position on the screen, and print in on screen:
 
 ```javascript
 import React, { useState } from 'react';
@@ -37,17 +37,19 @@ export default MouseTracker;
 That looks nice. Now, how do we modify this component, so we:
 
 1. Reuse the mouse tracking logic, but
-1. Customize how that information is displayed on screen
+1. Customize how that information is displayed on the screen
 
 Right now, anywhere we use `<MouseTracker />` would only satisfy #1, not #2. They'll all track the mouse cursor location (_which is good_), but they all display "Move the mouse and see its coordinate" (_which is bad_).
 
-Before we go any further, let's think of a scenario that makes this reusability _actually_ useful; we will use a naive approach to solve it first, then see why it's naive. This is important, because often we rush into a technique or pattern too fast fearing being left behind, without being very clear what problem it tries to solve, and what trade-off we have to make.
+Before we present the render props, let's attempt to solve this problem using a naive approach to see its flaws. It is vital to go through those steps before rushing into a new technique or pattern, because on top of how to use it, we also need to be very clear about when to use it, and what the trade-offs are.
+
+Learning a new technique is useless or sometimes even harmful if we don't know when to use it.
 
 ## Scenario: Cat and Mouse
 
-Imagine this scenario: we want to make a component called `<Cat />`; it accepts a coordiate object and display a cat icon at that coordinate. The purpose is to display this cat right at the user's cursor.
+Imagine this scenario: we want to make a component called `<Cat />`; it accepts a coordinate object and displays a cat icon at that coordinate. The purpose is to display this cat right at the user's cursor.
 
-So `<Cat />` looks like this:
+So `<Cat />` might looks like this:
 
 ```javascript
 import React from 'react';
@@ -92,4 +94,4 @@ const MouseWithCat = () => {
 export default MouseWithCat;
 ```
 
-In most applications, that would be enough. But, what if we want a component just like `<MouseWithCat />`, but work with more than just `<Cat />`?
+In most applications, that would be enough. However, what if we want a component just like `<MouseWithCat />`, but work with more than just `<Cat />`?
