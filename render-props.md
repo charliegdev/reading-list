@@ -94,4 +94,6 @@ const MouseWithCat = () => {
 export default MouseWithCat;
 ```
 
+![cat](screenshots/render-props/cat.PNG)
+
 In most applications, that would be enough. However, what if we want a component just like `<MouseWithCat />`, but work with more than just `<Cat />`?
