@@ -69,7 +69,7 @@ If we inspect our component, we'll see it does 2 things:
 Let's take our `<MouseTracker />` component 1 step further. What if I want to make my `<MouseTracker />` component reusable by:
 
 1. Reusing its business logic, so it can still detect mouse cursor location
-1. Let people customize its view logic, so it can render whatever is specified, instead of only displaying "Move the mouse and see its coordinate!"
+1. Letting people customize its view logic, so it can render whatever is specified, instead of only displaying "Move the mouse and see its coordinate!"
 
 How can write this new component so it can take customized view logic?
 
@@ -132,6 +132,10 @@ const TrackerWithCat = () => {
 export default TrackerWithCat;
 ```
 
+[Diff from `<MouseTracker />` to `<TrackerWithCat />`](https://www.diffchecker.com/EJ6d01WM):
+
+![tracker-withcat](screenshots/render-props/tracker-withcat.PNG)
+
 And this would be how we use them together:
 
 ```javascript
@@ -188,6 +192,10 @@ TrackerWithAnything.propTypes = {
 
 export default TrackerWithAnything;
 ```
+
+[Diff from `<TrackerWithCat />` to `<TrackerWithAnything />`](https://www.diffchecker.com/SoZN1YIp):
+
+![cat-anything](screenshots/render-props/cat-anything.PNG)
 
 ```javascript
 // App.jsx
@@ -259,7 +267,7 @@ Ok, our approach seems to work well! There is a drawback though: by specifying
 <UsedWith x={x} y={y} />
 ```
 
-inside `<TrackerWithAnything />` component, we're restricting the shape of customized view logic: `<UsedWith />` is designed to take in another React component that also accpets exactly an `x` prop and a `y` prop. Take a look at our `<Cat />` component and `<CoordDisplay />` component; they have to be written that way to be used with `<TrackerWithAnything />`. What if our component wants a 3rd prop? It's hard to pass that in. Here is an example: we have a new component, `<ComplicatedCat />`, that requires a 3rd prop:
+inside `<TrackerWithAnything />` component, we're restricting the shape of customized view logic: `<UsedWith />` is designed to take in another React component that also accepts exactly an `x` prop and a `y` prop. Take a look at our `<Cat />` component and `<CoordDisplay />` component; they have to be written that way to be used with `<TrackerWithAnything />`. What if our component wants a 3rd prop? It's hard to pass that in. Here is an example: we have a new component, `<ComplicatedCat />`, that requires a 3rd prop:
 
 ```javascript
 // ComplicatedCat.jsx
@@ -343,6 +351,10 @@ TrackerWithRenderProps.propTypes = {
 
 export default TrackerWithRenderProps;
 ```
+
+[Diff from `<TrackerWithAnything />` to `<TrackerWithRenderProps />`](https://www.diffchecker.com/JBweQ8Fd):
+
+![anything-renderprops](screenshots/render-props/anything-renderprops.PNG)
 
 Now let's see how this makes things better: in `App.jsx`, we can do things a bit differently:
 
