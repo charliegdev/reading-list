@@ -6,7 +6,11 @@ In this post, I'm going to talk about **render props** in React. This article is
 
 - [Definition](#definition)
 - [Motivation](#motivation)
-- [Scenario: Cat and Mouse](#scenario-cat-and-mouse)
+- [Step 0: Not Doing Anything](#step-0-not-doing-anything)
+- [Step 1: Cat & Mouse (Hard Coded)](#step-1-cat--mouse-hard-coded)
+- [Step 2: Cat & Mouse (As a Prop)](#step-2-cat--mouse-as-a-prop)
+- [Step 3: Drawback](#step-3-drawback)
+- [Step 4: Render Props](#step-4-render-props)
 
 <!-- /TOC -->
 
@@ -59,20 +63,29 @@ export default MouseTracker;
 
 If we inspect our component, we'll see it does 2 things:
 
-1. Track the mouse cursor location to get the value of `x` and `y`. That is our **business logic**; it's related to _how the application works underneath_, not _how the UI is presented to the user_.
-1. Display `x` and `y`, and some text on the screen in the `render` function. That is the **view logic**; it dictates how the UI would look like to an end user.
+- Track the mouse cursor location to get the value of `x` and `y`. That is our **business logic**; it's related to _how the application works underneath_, not _how the UI is presented to the user_.
+- Display `x` and `y`, and some text on the screen in the `render` function. That is the **view logic**; it dictates how the UI would look like to an end user.
 
-If we
+Let's take our `<MouseTracker />` component 1 step further. What if I want to make my `<MouseTracker />` component reusable by:
 
-Right now, anywhere we use `<MouseTracker />` would only satisfy #1, not #2. They'll all track the mouse cursor location (_which is good_), but they all display "Move the mouse and see its coordinate" (_which is bad_).
+1. Reusing its business logic, so it can still detect mouse cursor location
+1. Let people customize its view logic, so it can render whatever is specified, instead of only displaying "Move the mouse and see its coordinate!"
 
-Before we present the render props, let's attempt to solve this problem using a naive approach to see its flaws. It is vital to go through those steps before rushing into a new technique or pattern, because on top of how to use it, we also need to be very clear about when to use it, and what the trade-offs are.
+How can write this new component so it can take customized view logic?
 
-Learning a new technique is useless or sometimes even harmful if we don't know when to use it.
+## Step 0: Not Doing Anything
 
-## Scenario: Cat and Mouse
+Right now, anywhere we use `<MouseTracker />` would only satisfy #1, not #2. They'll all track the mouse cursor location (_which is good_), but they all display "Move the mouse and see its coordinate!" (_which is bad_).
 
-Imagine this scenario: we want to make a component called `<Cat />`; it accepts a coordinate object and displays a cat icon at that coordinate. The purpose is to display this cat right at the user's cursor.
+We didn't do anything yet, but at least we know currently our `<MouseTracker />` component does not satisfy requirement #2.
+
+## Step 1: Cat & Mouse (Hard Coded)
+
+We don't know how to make it take customized view logic yet, so let's start with a naive approach first: hard code the new view logic. After we hard code something different, it'll be more obvious where to go next.
+
+Imagine this new scenario: instead of displaying some text inside the `render` function, we want to display a new React component called `<Cat />`; it accepts the x coordinate and the y coordinate, and displays a cat icon at that coordinate. The purpose is to make this cat follow the user's cursor. The end product looks like this:
+
+![tracker-with-cat](screenshots/render-props/TrackerWithCat.gif)
 
 So `<Cat />` might looks like this:
 
@@ -82,26 +95,24 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import cat from './cat.png';
 
-const Cat = ({ mouse }) => <img src={cat} style={{ position: 'absolute', left: mouse.x, top: mouse.y }} />;
+const Cat = ({ x, y }) => <img src={cat} alt="cat" style={{ position: 'absolute', left: x, top: y }} />;
 
 Cat.propTypes = {
-  mouse: PropTypes.shape({
-    x: PropTypes.number,
-    y: PropTypes.number
-  }).isRequired
+  x: PropTypes.number.isRequired,
+  y: PropTypes.number.isRequired
 };
 
 export default Cat;
 ```
 
-Assuming we're only using that mouse tracking logic once, we can simply modify `<MouseTracker >` to make it only works with `<Cat />`:
+Create a `<TrackerWithCat />` component that's basically the same as `<MouseTracker />`; only the `render` function is different:
 
 ```javascript
-// MouseWithCat.jsx
+// TrackerWithCat.jsx
 import React, { useState } from 'react';
 import Cat from './Cat';
 
-const MouseWithCat = () => {
+const TrackerWithCat = () => {
   const [x, setX] = useState(0);
   const [y, setY] = useState(0);
 
@@ -113,17 +124,70 @@ const MouseWithCat = () => {
   // Instead of displaying an <h1 /> and <p />, just diplay this <Cat />.
   return (
     <div style={{ height: '100vh', width: '100vw' }} onMouseMove={handleMouseMove}>
-      <Cat mouse={{ x, y }} />
+      <Cat x={x} y={y} />
     </div>
   );
 };
 
-export default MouseWithCat;
+export default TrackerWithCat;
 ```
 
-![cat](screenshots/render-props/cat.PNG)
+And this would be how we use them together:
 
-In most applications, that probably is enough: you made a component, `<MouseWithCat />`, which can track mouse location, and is meant to be used with `<Cat />`. However, what if you want better code reuse: we want a component just like `<MouseWithCat />`, but work with more than just `<Cat />`? We naturally reach a good solution: instead of hard coding `<Cat />` as part of the rendered JSX, why not pass it as a prop, like this:
+```javascript
+// App.jsx
+import React, { Component } from 'react';
+import TrackerWithCat from './TrackerWithCat';
+import './App.css';
+
+class App extends Component {
+  render() {
+    return (
+      <div className="App">
+        <header className="App-header">
+          <TrackerWithCat />
+        </header>
+      </div>
+    );
+  }
+}
+
+export default App;
+```
+
+Our new component, `<TrackerWithCat />` is almost the same as `<MouseTracker />`; the only difference is what they hard code inside their respective `render` function. So now it's pretty obvious: if we want to customize their view logic, we can expose its view logic as a prop, so the tracker component's parent can pass in the view logic.
+
+## Step 2: Cat & Mouse (As a Prop)
+
+So, let's expose the render logic as a prop instead of hard code `<Cat />` inside the `render` function:
+
+```javascript
+// TrackerWithAnything.jsx
+import React, { useState } from 'react';
+import PropTypes from 'prop-types';
+
+const TrackerWithAnything = ({ UsedWith }) => {
+  const [x, setX] = useState(0);
+  const [y, setY] = useState(0);
+
+  const handleMouseMove = ({ clientX, clientY }) => {
+    setX(clientX);
+    setY(clientY);
+  };
+
+  return (
+    <div style={{ height: '100vh', width: '100vw' }} onMouseMove={handleMouseMove}>
+      <UsedWith x={x} y={y} />
+    </div>
+  );
+};
+
+TrackerWithAnything.propTypes = {
+  UsedWith: PropTypes.func.isRequired
+};
+
+export default TrackerWithAnything;
+```
 
 ```javascript
 // App.jsx
@@ -147,12 +211,117 @@ class App extends Component {
 export default App;
 ```
 
+`<Cat />` remains the same.
+
+Since we are talking about customize the view logic, let's swap `<Cat />` out with something else. For example:
+
 ```javascript
-// MouseWithAnything.jsx
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import TrackerWithAnything from './TrackerWithAnything';
+// import Cat from './Cat';
+import './App.css';
+
+const CoordDisplay = ({ x, y }) => (
+  <div>
+    <h1>You have put the cursor at:</h1>
+    <p>
+      x: {x}, y: {y}
+    </p>
+  </div>
+);
+
+CoordDisplay.propTypes = {
+  x: PropTypes.number.isRequired,
+  y: PropTypes.number.isRequired
+};
+
+class App extends Component {
+  render() {
+    return (
+      <div className="App">
+        <header className="App-header">
+          <TrackerWithAnything UsedWith={CoordDisplay} />
+        </header>
+      </div>
+    );
+  }
+}
+
+export default App;
+```
+
+## Step 3: Drawback
+
+Ok, our approach seems to work well! There is a drawback though: by specifying
+
+```javascript
+<UsedWith x={x} y={y} />
+```
+
+inside `<TrackerWithAnything />` component, we're restricting the shape of customized view logic: `<UsedWith />` is designed to take in another React component that also accpets exactly an `x` prop and a `y` prop. Take a look at our `<Cat />` component and `<CoordDisplay />` component; they have to be written that way to be used with `<TrackerWithAnything />`. What if our component wants a 3rd prop? It's hard to pass that in. Here is an example: we have a new component, `<ComplicatedCat />`, that requires a 3rd prop:
+
+```javascript
+// ComplicatedCat.jsx
+import React from 'react';
+import PropTypes from 'prop-types';
+
+const ComplicatedCat = ({ x, y, food }) => (
+  <div>
+    <h1>
+      Coordiates: x: {x}, y: {y}
+    </h1>
+
+    <h2>Human, feed me {food}!</h2>
+  </div>
+);
+
+ComplicatedCat.propTypes = {
+  x: PropTypes.number.isRequired,
+  y: PropTypes.number.isRequired,
+  food: PropTypes.string.isRequired
+};
+
+export default ComplicatedCat;
+```
+
+Now if we look at `App.jsx` we'll see we're in trouble:
+
+```javascript
+// App.jsx
+import React, { Component } from 'react';
+import TrackerWithAnything from './TrackerWithAnything';
+// import Cat from './Cat';
+import ComplicatedCat from './ComplicatedCat';
+import './App.css';
+
+class App extends Component {
+  render() {
+    return (
+      <div className="App">
+        <header className="App-header">
+          <TrackerWithAnything UsedWith={ComplicatedCat} />
+        </header>
+      </div>
+    );
+  }
+}
+
+export default App;
+```
+
+There is no way to pass the 3rd props in! That is not good. Sure we allowed customized view logic, but that customization is still restricted to React components in a certain shape. What if we loosen that requirement?
+
+## Step 4: Render Props
+
+Instead of specifying a `<UsedWith />` component, let's just specify a function, and pass in the `x` and `y` coordinates:
+
+```javascript
+// TrackerWithRenderProps.jsx
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 
-const MouseWithAnything = ({ UsedWith }) => {
+const TrackerWithRenderProps = ({ render }) => {
   const [x, setX] = useState(0);
   const [y, setY] = useState(0);
 
@@ -163,14 +332,68 @@ const MouseWithAnything = ({ UsedWith }) => {
 
   return (
     <div style={{ height: '100vh', width: '100vw' }} onMouseMove={handleMouseMove}>
-      <UsedWith mouse={{ x, y }} />
+      {render(x, y)}
     </div>
   );
 };
 
-MouseWithAnything.propTypes = {
-  UsedWith: PropTypes.func.isRequired
+TrackerWithRenderProps.propTypes = {
+  render: PropTypes.func.isRequired
 };
 
-export default MouseWithAnything;
+export default TrackerWithRenderProps;
 ```
+
+Now let's see how this makes things better: in `App.jsx`, we can do things a bit differently:
+
+```javascript
+// App.jsx
+import React, { Component } from 'react';
+import TrackerWithRenderProp from './TrackerWithRenderProp';
+import ComplicatedCat from './ComplicatedCat';
+import './App.css';
+
+class App extends Component {
+  render() {
+    return (
+      <div className="App">
+        <header className="App-header">
+          <TrackerWithRenderProp render={(x, y) => <ComplicatedCat x={x} y={y} food="Salmon" />} />
+        </header>
+      </div>
+    );
+  }
+}
+
+export default App;
+```
+
+See? Now with `render` prop as a generic function with 2 parameters, we can specify the 3rd props for `<ComplicatedCat />` in whatever way we want. That `food` prop? We can retrieve the value from some other components. Maybe from the Redux store. Maybe just hard coded like we did. Point being, `<TrackerWithRenderProp />` does not require `<ComplicatedCat />` to be a React component that comforms to a strict shape. Hell, I could do this:
+
+```javascript
+import React, { Component } from 'react';
+import TrackerWithRenderProp from './TrackerWithRenderProp';
+import './App.css';
+
+class App extends Component {
+  render() {
+    return (
+      <div className="App">
+        <header className="App-header">
+          <TrackerWithRenderProp
+            render={(x, y) => (
+              <p>
+                Huh? {x}, {y}
+              </p>
+            )}
+          />
+        </header>
+      </div>
+    );
+  }
+}
+
+export default App;
+```
+
+That was impossible in our previous approach; we'll have to create a new component to wrap the `<p>` inside.
