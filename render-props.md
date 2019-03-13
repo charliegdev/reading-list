@@ -1,9 +1,23 @@
-# Render Props
+# Render Props, Part I
 
-In this post, I'm going to talk about **render props** in React. This article is based on [React Blog's tutorial on Render Props](https://reactjs.org/docs/render-props.html); I had a hard time understanding that one, so after I grapsed the concept I created my own guide. You could totally read that one first; if it doesn't make much sense, come back to this one, and hopefully I can clear things up for you.
+In this series of 2 posts, I am going to talk about **render props** in React. This series is based on [React Blog's tutorial on Render Props](https://reactjs.org/docs/render-props.html); I had a hard time understanding that one, so after I grapsed the concept I created my own guide to break everything down.
+
+You might be thinking, "there is already an official one, so why should I bother reading this one then?" Let me start by saying, I won't claim my guide is better. However, my guide is different, because it shows:
+
+1. The difficulties people run into when not using **render props**
+1. How people discovered this pattern, and you can write it
+1. Popular libraries using this pattern, and how you can use those libraries
+1. Common ways of misusing **render props**, and what the alternatives are
+
+If you just want a quick rundown on **render props**, and you're good at reading and understanding concise programming guides, the official one may be the better option for you. However, if you're like me who prefer dijesting concept in smaller bites and having trouble understand the official one, give this series a try; maybe it can make the concept clearer.
+
+In this 1st post of the series, I will talk about the first 2 points: why we need it, and how to write components using it.
+
+## Table of Contents
 
 <!-- TOC -->
 
+- [Table of Contents](#table-of-contents)
 - [Definition](#definition)
 - [Motivation](#motivation)
 - [Step 0: Not Doing Anything](#step-0-not-doing-anything)
@@ -11,6 +25,7 @@ In this post, I'm going to talk about **render props** in React. This article is
 - [Step 2: Cat & Mouse (As a Prop)](#step-2-cat--mouse-as-a-prop)
 - [Step 3: Drawback](#step-3-drawback)
 - [Step 4: Render Props](#step-4-render-props)
+- [Summary](#summary)
 
 <!-- /TOC -->
 
@@ -22,11 +37,7 @@ Render props is a way of **reusing a React component by exposing its `render` fu
 <Mouse render={(mouse) => <Cat mouse={mouse} />} />
 ```
 
-If that definition and example don't make sense yet, don't worry. The rest of this article will guide you step by step, so you'll know:
-
-1. Why kind of problem **render props** intends to solve
-1. How to write a component so it uses **render props**
-1. What existing libraries already use this pattern
+If that definition and example don't make sense yet, don't worry. The purpose of this series is to help you understand that.
 
 ## Motivation
 
@@ -318,7 +329,7 @@ class App extends Component {
 export default App;
 ```
 
-There is no way to pass the 3rd props in! That is not good. Sure we allowed customized view logic, but that customization is still restricted to React components in a certain shape. What if we loosen that requirement?
+There is no way to pass the 3rd prop, `food` in! That is not good. Sure we allowed customized view logic, but that customization is still restricted to React components in a certain shape. How can we loosen that requirement?
 
 ## Step 4: Render Props
 
@@ -380,7 +391,7 @@ class App extends Component {
 export default App;
 ```
 
-See? Now with `render` prop as a generic function with 2 parameters, we can specify the 3rd props for `<ComplicatedCat />` in whatever way we want. That `food` prop? We can retrieve the value from some other components. Maybe from the Redux store. Maybe just hard coded like we did. Point being, `<TrackerWithRenderProp />` does not require `<ComplicatedCat />` to be a React component that comforms to a strict shape. Hell, I could do this:
+See? Now with `render` prop as a generic function with 2 parameters, we can specify the 3rd props for `<ComplicatedCat />` in whatever way we want. That `food` prop? We can retrieve the value from some other components. Maybe from the Redux store. Maybe just hard coded like we did. Point being, `<TrackerWithRenderProp />` does not require `<ComplicatedCat />` to be a React component that comforms to a strict shape. I could do this as well:
 
 ```javascript
 import React, { Component } from 'react';
@@ -409,3 +420,30 @@ export default App;
 ```
 
 That was impossible in our previous approach; we'll have to create a new component to wrap the `<p>` inside.
+
+## Summary
+
+Now, let's look back at the definition of **render props** once again:
+
+Render props is a way of **reusing a React component by exposing its `render` function as a prop**, like this:
+
+```javascript
+<Mouse render={(mouse) => <Cat mouse={mouse} />} />
+```
+
+And when we say "reuse a React component", we meant:
+
+1. We want to reuse its business logic;
+1. We would like to customize its view logic.
+
+If we look at that `<Mouse />` component, it's obvious that with the `render` function exposed, we can customize its rendering logic.
+
+You've learnt these things about **render props** for now:
+
+1. What problems they are designed to solve
+1. How to write your own component with **render props**
+
+If you're in a rush to use it, you may stop reading now. However, if you want to understand some additional useful information about it, I recommend you read my 2nd post of the same series to know:
+
+1. Popular libraries using this pattern, and how you can use those libraries. We'll talk about [React Router](https://reacttraining.com/react-router/).
+1. Drawbacks of **render props** and what are the alternatives.
